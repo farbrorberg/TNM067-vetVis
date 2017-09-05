@@ -33,9 +33,6 @@
 #include <modules/tnm067lab1/tnm067lab1moduledefine.h>
 #include <inviwo/core/common/inviwo.h>
 
-#define TEST_ON 1
-#define TEST_OFF 0
-
 namespace inviwo {
     
     template<typename T> struct float_type{using type = double;};
@@ -51,15 +48,13 @@ namespace inviwo {
         
 
 
-#define ENABLE_LINEAR_UNITTEST TEST_OFF
+#define ENABLE_LINEAR_UNITTEST 1
     template<typename T, typename F = double> 
     T linear(const T &a, const T &b , F x){
         if(x<=0) return a;
-        if(x>=1) return b;
+		if(x>=1) return b;
 
-        // Task 8
-        
-        return a;
+		return (a * (1 - x) + b * x);
     }
 
 
@@ -71,11 +66,14 @@ namespace inviwo {
      0------1
         x
     */
-#define ENABLE_BILINEAR_UNITTEST TEST_OFF
+#define ENABLE_BILINEAR_UNITTEST 1
     template<typename T, typename F = double> 
     T bilinear(const std::array<T, 4> &v, F x, F y) {
-        // Task 8
-        return v[0];
+
+		float dx = linear(v[0], v[1], x);
+		float dy = linear(v[2], v[3], x);
+
+        return linear(dx, dy, y);
     }
 
 
@@ -84,11 +82,12 @@ namespace inviwo {
     a--•----b------c
     0  x    1      2
     */
-#define ENABLE_QUADRATIC_UNITTEST TEST_OFF
+#define ENABLE_QUADRATIC_UNITTEST 1
     template<typename T, typename F = double> 
     T quadratic(const T &a, const T &b , const T &c , F x){
-        // Task 9
-        return a;
+        return (1-x)*(1-2*x) * a 
+			+ 4*x*(1-x) * b 
+			+ x*(2*x-1) * c;
     }
 
 
@@ -105,11 +104,15 @@ namespace inviwo {
     0-------1-------2
     0  x    1       2
     */
-#define ENABLE_BIQUADRATIC_UNITTEST TEST_OFF    
-template<typename T, typename F = double> 
+#define ENABLE_BIQUADRATIC_UNITTEST 1
+    template<typename T, typename F = double> 
     T biQuadratic(const std::array<T,9> &v ,F x,F y){
-        // Task 10
-        return v[0];
+
+		float a = quadratic(v[0], v[1], v[2], x);
+		float b = quadratic(v[3], v[4], v[5], x);
+		float c = quadratic(v[6], v[7], v[8], x);
+
+        return quadratic(a, b, c, y);
     }
 
 
@@ -123,13 +126,26 @@ template<typename T, typename F = double>
      0---------1
         x
     */
-#define ENABLE_BARYCENTRIC_UNITTEST 0
+#define ENABLE_BARYCENTRIC_UNITTEST 1
     template<typename T, typename F = double> 
     T barycentric(const std::array<T,4> &v ,F x,F y){
-        // Task 11
-        return v[0];
 
-
+		// Lower triangle
+		if (x + y < 1) {
+			return (
+				(1 - x - y) * v[0]
+				+ x * v[1]
+				+ y * v[2]
+				);
+		}
+		// Upper triangle
+		else {
+			return (
+				(1 + x + y) * v[0]
+				+ x * v[1]
+				+ y * v[2]
+				);
+		}
     }
 
 } // namespace interpolation

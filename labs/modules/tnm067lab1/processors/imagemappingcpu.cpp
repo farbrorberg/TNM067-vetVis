@@ -99,9 +99,11 @@ void ImageMappingCPU::process() {
         util::forEachPixelParallel(*inRep, [&](size2_t pos) {
             auto i = index(pos);
             float inPixelVal = util::glm_convert_normalized<float>(inPixels[i]);
-            outPixels[i] = map.sample(inPixelVal);
+			outPixels[i] = map.sample(inPixelVal)*255.f;
         });
     });
+
+    outport_.setData(img);
 }
 
 }  // namespace inviwo

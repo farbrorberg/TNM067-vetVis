@@ -108,7 +108,7 @@ void ImageToHeightfield::buildMesh() {
     auto bufferSize = 24 * dims.x * dims.y;
     ibVector.reserve(bufferSize);
     vertices.reserve(bufferSize);
-
+	
     ScalarToColorMapping map;
     for (size_t i = 0; i < numColors_.get(); i++) {
         map.addBaseColors(colors_[i].get());
@@ -124,7 +124,6 @@ void ImageToHeightfield::buildMesh() {
         vec3 origin(origin2D.x,0.0f, origin2D.y);
         
         double height = img->getAsDouble(pos)*heightScaleFactor_;
-		
 
         vec4 color(1,1,1,1);
 		color = map.sample(img->getAsDouble(pos));

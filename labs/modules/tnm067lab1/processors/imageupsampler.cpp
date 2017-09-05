@@ -82,22 +82,66 @@ namespace inviwo {
                 switch (method) {
                     case inviwo::ImageUpsampler::IntepolationMethod::PiecewiseConstant:
                     {
-                        // Update finalColor
+						//int pixelIndex = inPixels[inIndex((size2_t(outImageCoords), size2_t(0), size2_t(inputSize - size2_t(1))))];
+						finalColor = inPixels[inIndex(ivec2(std::floor(inImageCoords.x), std::floor(inImageCoords.y)))];
                         break;
                     }
                     case inviwo::ImageUpsampler::IntepolationMethod::Bilinear:
                     {
                         // Update finalColor
+
+						std::array<T, 4> a = {
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y)))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y)))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y) + 1))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y) + 1))]
+						};
+
+
+						finalColor = inviwo::TNM067::Interpolation::bilinear(
+							a, 
+							(inImageCoords.x) - std::floor(inImageCoords.x),
+							(inImageCoords.y) - std::floor(inImageCoords.y)
+						);
+											
                         break;
                     }
                     case inviwo::ImageUpsampler::IntepolationMethod::Quadratic:
                     {
-                        // Update finalColor
+						std::array<T, 9> a = {
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y)))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y)))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 2,	std::floor(inImageCoords.y)))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y) + 1))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1,	std::floor(inImageCoords.y) + 1))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 2,	std::floor(inImageCoords.y) + 1))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y) + 2))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y) + 2))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 2, std::floor(inImageCoords.y) + 2))]
+						};
+
+						finalColor = inviwo::TNM067::Interpolation::biQuadratic(
+							a,
+							(inImageCoords.x) - std::floor(inImageCoords.x),
+							(inImageCoords.y) - std::floor(inImageCoords.y)
+						);
+
                         break;
                     }
                     case inviwo::ImageUpsampler::IntepolationMethod::Barycentric:
                     {
-                        // Update finalColor
+						std::array<T, 4> a = {
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y)))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y)))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y) + 1))],
+							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1,	std::floor(inImageCoords.y) + 1))]
+						};
+
+						finalColor = inviwo::TNM067::Interpolation::barycentric(
+							a,
+							(inImageCoords.x) - std::floor(inImageCoords.x),
+							(inImageCoords.y) - std::floor(inImageCoords.y)
+						);
                         break;
                     }
                     default:
@@ -157,11 +201,14 @@ void ImageUpsampler::process() {
 }
 
 dvec2 ImageUpsampler::convertCoordinate(ivec2 outImageCoords, size2_t inputSize, size2_t outputsize) {
-    // TODO implement
     dvec2 c(outImageCoords);
-    
-    // TASK 7: Convert the outImageCoords to its coordinates in the input image 
+	dvec2 inputDouble(inputSize);
+	dvec2 outputDouble(outputsize);
 
+	dvec2 scales = dvec2(inputDouble.x / outputDouble.x, inputDouble.y / outputDouble.y);
+	c *= scales;
+
+    // TASK 7: Convert the outImageCoords to its coordinates in the input image 
 
     return c; 
 }
