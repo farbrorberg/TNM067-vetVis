@@ -114,6 +114,7 @@ void ImageToHeightfield::buildMesh() {
         map.addBaseColors(colors_[i].get());
     }
 
+
     vec2 cellSize = 1.0f / vec2(dims);
     auto img = inImage->getColorLayer()->getRepresentation<LayerRAM>();
     util::forEachPixel(*img, [&](const size2_t &pos) {
@@ -126,6 +127,7 @@ void ImageToHeightfield::buildMesh() {
 		
 
         vec4 color(1,1,1,1);
+		color = map.sample(img->getAsDouble(pos));
 
         /****************************************
         BOTTOM

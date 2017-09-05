@@ -49,13 +49,15 @@ vec4 ScalarToColorMapping::sample(float t) {
 
 
     // Implement here:
-    // Interpolate colors in baseColors_
-    // return the right values
+	vec3 interpolatedColor;
+
+	//Linear interpolation: a * (1-t) + b * t
+	interpolatedColor = baseColors_[0] * (1 - t) + baseColors_[1] * t;
 
     if(t<=0) return vec4(baseColors_.front());
     if(t>=1) return vec4(baseColors_.back()); 
 
-    vec4 finalColor(t, t, t, 1); // dummy color
+    vec4 finalColor(interpolatedColor, 1);
 
     size_t N = baseColors_.size();
 
