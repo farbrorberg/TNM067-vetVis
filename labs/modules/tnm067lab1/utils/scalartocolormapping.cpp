@@ -46,25 +46,27 @@ void ScalarToColorMapping::addBaseColors(vec4 color) { baseColors_.push_back(col
 vec4 ScalarToColorMapping::sample(float t) {
     if (baseColors_.size() == 0) return vec4(t);
     if (baseColors_.size() == 1) return vec4(baseColors_[0]);
+	if(t<=0) return vec4(baseColors_.front());
+    if(t>=1) return vec4(baseColors_.back()); 
 
 
-    // Implement here:
+	// Implement here:
 	vec3 interpolatedColor;
 
 	//Linear interpolation: a * (1-t) + b * t
-	interpolatedColor = baseColors_[0] * (1 - t) + baseColors_[1] * t;
+	size_t N = baseColors_.size();
+	float scale = (N - 1) * t;
+	int indexLeft = std::floor(scale);
+	int indexRight = indexLeft + 1;
+	float pos = scale - indexLeft;
 
-    if(t<=0) return vec4(baseColors_.front());
-    if(t>=1) return vec4(baseColors_.back()); 
+	vec3 colorLeft = baseColors_[indexLeft];
+	vec3 colorRight = baseColors_[indexRight];
 
-    vec4 finalColor(interpolatedColor, 1);
-
-    size_t N = baseColors_.size();
-
+	interpolatedColor = colorLeft * (1 - pos) + colorRight * pos;
     
-    // TASK 5 : Linear interpolation between to colors in baseColors_ 
-
-     
+	vec4 finalColor(interpolatedColor, 1);
+    
     return finalColor;
 }
 
