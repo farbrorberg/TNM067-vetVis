@@ -34,6 +34,7 @@
 #include <inviwo/core/util/indexmapper.h>
 #include <inviwo/core/datastructures/volume/volumeram.h>
 #include <modules/base/algorithm/dataminmax.h>
+#include <math.h>
 
 namespace inviwo {
 
@@ -75,14 +76,31 @@ namespace inviwo {
     }
 
     inviwo::vec3 HydrogenGenerator::cartesianToSphereical(vec3 cartesian) {
-        vec3 sph;
-        //TODO implement this
+		double radial = glm::length(cartesian);
+		if (radial == 0) {
+			return vec3(0.0);
+		}
+		double theta  = acos(cartesian.z / radial);
+		double psi	 = atan2(cartesian.y, cartesian.x);
+
+		vec3 sph = vec3(radial, theta, psi);
+
         return sph;
     }
 
     double HydrogenGenerator::eval(vec3 cartesian) {
-        //TODO implement this
-        return 0;
+		vec3 sph = cartesianToSphereical(cartesian);
+		int Z = 1;
+		int a0 = 1;
+
+		double constant = 1 / (81 * sqrt(6 * M_PI));
+		double one = pow( Z / a0, 3 / 2);
+		double two = (Z * Z * sph.x * sph.x) / (a0 * a0);
+		double three = exp((-1 * Z * sph.x) / (3 * a0));
+		double four = 3 * cos(sph.y) * cos(sph.y) - 1;
+
+		//constant * waan * twoo * threee * fooour
+        return pow(constant * one * two * three * four, 2);
     }
 
     inviwo::vec3 HydrogenGenerator::idTOCartesian(size3_t pos) {
