@@ -141,9 +141,9 @@ namespace inviwo {
 		// Upper triangle
 		else {
 			return (
-				(1 + x + y) * v[0]
-				+ x * v[1]
-				+ y * v[2]
+				(x + y - 1) * v[3]
+				+ (1 - y) * v[1]
+				+ (1 - x) * v[2]
 				);
 		}
     }
