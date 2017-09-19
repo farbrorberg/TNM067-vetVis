@@ -94,7 +94,7 @@ namespace inviwo {
 		int a0 = 1;
 
 		double constant = 1 / (81 * sqrt(6 * M_PI));
-		double one = pow( Z / a0, 3 / 2);
+		double one = pow( Z / a0, 1.5);
 		double two = (Z * Z * sph.x * sph.x) / (a0 * a0);
 		double three = exp((-1 * Z * sph.x) / (3 * a0));
 		double four = 3 * cos(sph.y) * cos(sph.y) - 1;

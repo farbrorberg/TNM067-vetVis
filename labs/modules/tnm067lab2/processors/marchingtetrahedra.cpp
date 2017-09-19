@@ -89,7 +89,6 @@ void MarchingTetrahedra::process() {
 
     const static size_t tetrahedraIds[6][4] = {{0, 1, 2, 5}, {1, 3, 2, 5}, {3, 2, 5, 7},
                                                {0, 2, 4, 5}, {6, 4, 2, 5}, {6, 7, 5, 2}};
-
     size3_t pos;
     for (pos.z = 0; pos.z < dims.z - 1; ++pos.z) {
         for (pos.y = 0; pos.y < dims.y - 1; ++pos.y) {
@@ -99,21 +98,184 @@ void MarchingTetrahedra::process() {
                 // Spatial position should be between 0 and 1
                 // The voxel index should be the 1D-index for the voxel
                 Cell c;
+				auto voxIndex = 0;
 
-                // Step 2: Subdivide cell into tetrahedra (hint: use tetrahedraIds)
+				for (size_t z = 0; z <= 1; ++z) {
+					for (size_t y = 0; y <= 1; ++y) {
+						for (size_t x = 0; x <= 1; ++x) {
+							Voxel v;
+							v.pos.x = (pos.x + x) / (dims.x - 1.0f);
+							v.pos.y = (pos.y + y) / (dims.y - 1.0f);
+							v.pos.z = (pos.z + z) / (dims.z - 1.0f);
+							v.value = volume->getAsDouble(size3_t(pos.x + x, pos.y + y, pos.z + z));
+							v.index = index(size3_t(pos.x + x, pos.y + y, pos.z + z));
+													
+							c.voxels[voxIndex++] = v;
+						}
+					}
+				}
+				
+				// Step 2: Subdivide cell into tetrahedra (hint: use tetrahedraIds)
                 std::vector<Tetrahedra> tetrahedras;
+				for (size_t i = 0; i < 6; ++i) {
+					Tetrahedra tempTetrahedra;
+					for (size_t j = 0; j < 4; ++j) {
+						tempTetrahedra.voxels[j] = c.voxels[tetrahedraIds[i][j]];
+					}
+					tetrahedras.push_back(tempTetrahedra);
+				}
 
-                for (const Tetrahedra& tetrahedra : tetrahedras) {
+				for (const Tetrahedra& tetrahedra : tetrahedras) {
                     // Step three: Calculate for tetra case index
                     int caseId = 0;
 
-                    // step four: Extract triangles
+					Voxel v0 = tetrahedra.voxels[0];
+					Voxel v1 = tetrahedra.voxels[1];
+					Voxel v2 = tetrahedra.voxels[2];
+					Voxel v3 = tetrahedra.voxels[3];
+
+					// Determine where the ISO-line is 
+					if (v0.value < isoValue_) caseId |= 1;
+					if (v1.value < isoValue_) caseId |= 2;
+					if (v2.value < isoValue_) caseId |= 4;
+					if (v3.value < isoValue_) caseId |= 8;
+
+
+					switch (caseId) {
+						case 0: case 15:
+							break;
+					
+						case 1: case 14: {
+							
+							if (caseId == 1) { // Utåt
+								//mesh.addTriangle(i0, i2, i1);
+								calculateTriangle(mesh, iso, v0, v1, v0, v3, v0, v2);
+							}
+							else {
+								//mesh.addTriangle(i0, i1, i2);
+								calculateTriangle(mesh, iso, v0, v2, v0, v3, v0, v1);
+							}
+							break;
+						}
+						case 2: case 13: {
+							
+
+							if (caseId == 2) { // Utåt
+								//mesh.addTriangle(i0, i1, i2);
+								calculateTriangle(mesh, iso, v1, v0, v1, v2, v1, v3);
+							}
+							else {
+								//mesh.addTriangle(i0, i2, i1);
+								calculateTriangle(mesh, iso, v1, v3, v1, v2, v1, v0);
+							}
+							
+							break;
+						}
+
+						case 3: case 12: {
+							
+
+							if (caseId == 3) { // Utåt
+								//mesh.addTriangle(i0, i2, i1);
+								//mesh.addTriangle(i1, i2, i3);
+								calculateTriangle(mesh, iso, v1, v2, v1, v3, v0, v3);
+								calculateTriangle(mesh, iso, v1, v2, v0, v3, v0, v2);
+							}
+							else {
+								//mesh.addTriangle(i0, i1, i2);
+								//mesh.addTriangle(i2, i1, i3);
+								calculateTriangle(mesh, iso, v0, v3, v1, v3, v1, v2);
+								calculateTriangle(mesh, iso, v0, v2, v0, v3, v1, v2);
+							}
+							
+							break;
+						}
+						case 4: case 11: {
+							
+
+							if (caseId == 4) { // Utåt
+								//mesh.addTriangle(i0, i2, i1);
+								calculateTriangle(mesh, iso, v2, v3, v2, v1, v2, v0);
+							}
+							else {
+								//mesh.addTriangle(i0, i1, i2);
+								calculateTriangle(mesh, iso, v2, v0, v2, v1, v2, v3);
+							}
+							
+							break;
+						}
+					
+						case 5: case 10: {
+							
+
+							if (caseId == 5) { // Utåt
+								//mesh.addTriangle(i0, i2, i1);
+								//mesh.addTriangle(i1, i3, i2);
+								calculateTriangle(mesh, iso, v2, v1, v0, v1, v0, v3);
+								calculateTriangle(mesh, iso, v2, v3, v2, v1, v0, v3);
+							}
+							else {
+								//mesh.addTriangle(i0, i1, i2);
+								//mesh.addTriangle(i2, i1, i3);
+								calculateTriangle(mesh, iso, v0, v3, v0, v1, v2, v1);
+								calculateTriangle(mesh, iso, v0, v3, v2, v1, v2, v3);
+							}
+							break;
+						}
+						case 6: case 9: {
+							
+							if (caseId == 6) { // Utåt
+								//mesh.addTriangle(i3, i0, i2);
+								//mesh.addTriangle(i2, i0, i1);
+								calculateTriangle(mesh, iso, v2, v0, v1, v3, v1, v0);
+								calculateTriangle(mesh, iso, v2, v0, v2, v3, v1, v3);
+							}
+							else {
+								//mesh.addTriangle(i3, i2, i0);
+								//mesh.addTriangle(i0, i2, i1);
+								calculateTriangle(mesh, iso, v1, v0, v1, v3, v2, v0);
+								calculateTriangle(mesh, iso, v1, v3, v2, v3, v2, v0);
+							}
+							
+							break;
+						}
+						case 7: case 8: {
+							
+							if (caseId == 7) { // Utåt
+								//mesh.addTriangle(i0, i2, i1);
+								calculateTriangle(mesh, iso, v3, v1, v3, v0, v3, v2);
+							}
+							else {
+								//mesh.addTriangle(i0, i1, i2);
+								calculateTriangle(mesh, iso, v3, v2, v3, v0, v3, v1);
+							}
+							
+							break;
+						}
+					}
                 }
             }
         }
     }
 
     mesh_.setData(mesh.toBasicMesh());
+}
+
+void MarchingTetrahedra::calculateTriangle(
+	MarchingTetrahedra::MeshHelper &mesh, float iso, 
+	MarchingTetrahedra::Voxel vox0, MarchingTetrahedra::Voxel vox1,
+	MarchingTetrahedra::Voxel vox2, MarchingTetrahedra::Voxel vox3, 
+	MarchingTetrahedra::Voxel vox4, MarchingTetrahedra::Voxel vox5) {
+
+	auto posV0 = vox0.pos + ((vox1.pos - vox0.pos) * (iso - vox0.value)) / (vox1.value - vox0.value);
+	auto posV1 = vox2.pos + ((vox3.pos - vox2.pos) * (iso - vox2.value)) / (vox3.value - vox2.value);
+	auto posV2 = vox4.pos + ((vox5.pos - vox4.pos) * (iso - vox4.value)) / (vox5.value - vox4.value);
+
+	size_t t0 = mesh.addVertex(posV0, vox0.index, vox1.index);
+	size_t t1 = mesh.addVertex(posV1, vox2.index, vox3.index);
+	size_t t2 = mesh.addVertex(posV2, vox4.index, vox5.index);
+
+	mesh.addTriangle(t0, t1, t2);
 }
 
 MarchingTetrahedra::MeshHelper::MeshHelper(std::shared_ptr<const Volume> vol)
@@ -172,3 +334,12 @@ std::uint32_t MarchingTetrahedra::MeshHelper::addVertex(vec3 pos, size_t i, size
 }
 
 }  // namespace inviwo
+
+
+/*
+
+v0.pos + ((v1.pos - v0.pos) * (iso - v0.value)) / (v1.value - v0.value);
+v0.pos + ((v2.pos - v0.pos) * (iso - v0.value)) / (v2.value - v0.value);
+v0.pos + ((v3.pos - v0.pos) * (iso - v0.value)) / (v3.value - v0.value);
+
+*/

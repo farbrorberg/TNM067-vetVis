@@ -104,6 +104,8 @@ public:
      
     virtual void process() override;
 
+	void calculateTriangle(MarchingTetrahedra::MeshHelper & mesh, float iso, MarchingTetrahedra::Voxel vox0, MarchingTetrahedra::Voxel vox1, MarchingTetrahedra::Voxel vox2, MarchingTetrahedra::Voxel vox3, MarchingTetrahedra::Voxel vox4, MarchingTetrahedra::Voxel vox5);
+
     virtual const ProcessorInfo getProcessorInfo() const override;
     static const ProcessorInfo processorInfo_;
 private:
