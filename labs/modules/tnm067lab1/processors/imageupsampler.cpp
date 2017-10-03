@@ -40,24 +40,24 @@
 #include <inviwo/core/util/imageramutils.h>
 
 namespace inviwo {
-
+    
     namespace detail{
-
         
-
-
+        
+        
+        
         template<typename T>
-        void upsample( ImageUpsampler::IntepolationMethod  method , 
-            const LayerRAMPrecision<T> &inputImage, LayerRAMPrecision<T> &outputImage){
+        void upsample( ImageUpsampler::IntepolationMethod  method ,
+                      const LayerRAMPrecision<T> &inputImage, LayerRAMPrecision<T> &outputImage){
             using F = typename float_type<T>::type;
             
             size2_t inputSize = inputImage.getDimensions();
             size2_t outputSize = outputImage.getDimensions();
-
+            
             const T* inPixels = inputImage.getDataTyped();
             T* outPixels = outputImage.getDataTyped();
-
-
+            
+            
             auto inIndex = [&inputSize](auto pos) -> size_t{
                 pos = glm::clamp(pos, decltype(pos)(0) , decltype(pos)(inputSize - 1ull));
                 return pos.x + pos.y * inputSize.x;
@@ -66,153 +66,107 @@ namespace inviwo {
                 pos = glm::clamp(pos, decltype(pos)(0) , decltype(pos)(outputSize - 1ull));
                 return pos.x + pos.y * outputSize.x;
             };
-
+            
             util::forEachPixel(outputImage, [&](ivec2 outImageCoords) {
                 // outImageCoords: Exact pixel coordinates in the output image currently writing to
                 // inImageCoords: Relative coordinates of outImageCoords in the input image, might be between pixels
                 dvec2 inImageCoords = ImageUpsampler::convertCoordinate(outImageCoords, inputSize, outputSize);
-
+                
                 T finalColor(0);
-
+                
                 //DUMMY COLOR, remove or overwrite this bellow
                 finalColor = inPixels[inIndex( glm::clamp(size2_t(outImageCoords), size2_t(0), size2_t(inputSize - size2_t(1))) )];
-
-
-                // TASK 12 : Implement the following functions using TNM067::Interpolation::bilinear etc.  
+                
+                
                 switch (method) {
                     case inviwo::ImageUpsampler::IntepolationMethod::PiecewiseConstant:
                     {
-						//int pixelIndex = inPixels[inIndex((size2_t(outImageCoords), size2_t(0), size2_t(inputSize - size2_t(1))))];
-						finalColor = inPixels[inIndex(ivec2(std::floor(inImageCoords.x), std::floor(inImageCoords.y)))];
+                        // Task 8
+                        // Update finalColor
                         break;
                     }
                     case inviwo::ImageUpsampler::IntepolationMethod::Bilinear:
                     {
                         // Update finalColor
-
-						std::array<T, 4> a = {
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y)))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y)))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y) + 1))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y) + 1))]
-						};
-
-
-						finalColor = inviwo::TNM067::Interpolation::bilinear(
-							a, 
-							(inImageCoords.x) - std::floor(inImageCoords.x),
-							(inImageCoords.y) - std::floor(inImageCoords.y)
-						);
-											
                         break;
                     }
                     case inviwo::ImageUpsampler::IntepolationMethod::Quadratic:
                     {
-						std::array<T, 9> a = {
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y)))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y)))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 2,	std::floor(inImageCoords.y)))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y) + 1))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1,	std::floor(inImageCoords.y) + 1))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 2,	std::floor(inImageCoords.y) + 1))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y) + 2))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y) + 2))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 2, std::floor(inImageCoords.y) + 2))]
-						};
-
-						finalColor = inviwo::TNM067::Interpolation::biQuadratic(
-							a,
-							(inImageCoords.x) - std::floor(inImageCoords.x),
-							(inImageCoords.y) - std::floor(inImageCoords.y)
-						);
-
+                        // Update finalColor
                         break;
                     }
                     case inviwo::ImageUpsampler::IntepolationMethod::Barycentric:
                     {
-						std::array<T, 4> a = {
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y)))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1, std::floor(inImageCoords.y)))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x),		std::floor(inImageCoords.y) + 1))],
-							inPixels[inIndex(ivec2(std::floor(inImageCoords.x) + 1,	std::floor(inImageCoords.y) + 1))]
-						};
-
-						finalColor = inviwo::TNM067::Interpolation::barycentric(
-							a,
-							(inImageCoords.x) - std::floor(inImageCoords.x),
-							(inImageCoords.y) - std::floor(inImageCoords.y)
-						);
+                        // Update finalColor
                         break;
                     }
                     default:
                         break;
                 }
-
+                
                 outPixels[outIndex(outImageCoords)] = finalColor;
             });
         }
-    
+        
     }
-
-
-const ProcessorInfo ImageUpsampler::processorInfo_{
-    "org.inviwo.imageupsampler",  // Class identifier
-    "Image Upsampler",            // Display name
-    "TNM067",                     // Category
-    CodeState::Experimental,      // Code state
-    Tags::None,                   // Tags
-};
-const ProcessorInfo ImageUpsampler::getProcessorInfo() const { return processorInfo_; }
-
-ImageUpsampler::ImageUpsampler()
+    
+    
+    const ProcessorInfo ImageUpsampler::processorInfo_{
+        "org.inviwo.imageupsampler",  // Class identifier
+        "Image Upsampler",            // Display name
+        "TNM067",                     // Category
+        CodeState::Experimental,      // Code state
+        Tags::None,                   // Tags
+    };
+    const ProcessorInfo ImageUpsampler::getProcessorInfo() const { return processorInfo_; }
+    
+    ImageUpsampler::ImageUpsampler()
     : Processor()
     , inport_("inport", true)
     , outport_("outport" , true)
     , interpolationMethod_(
-          "interpolationMethod", "Interpolation Method",
-          {
-              {"piecewiseconstant", "Piecewise Constant (Nearest Neighbor)", IntepolationMethod::PiecewiseConstant},
-              {"bilinear", "Bilinear", IntepolationMethod::Bilinear},
-              {"quadratic", "Quadratic", IntepolationMethod::Quadratic},
-              {"barycentric", "Barycentric", IntepolationMethod::Barycentric},
-          }){
-    addPort(inport_);
-    addPort(outport_);
-    addProperty(interpolationMethod_);
-}
-
-void ImageUpsampler::process() {
-    auto inputImage = inport_.getData();
-    if(inputImage->getDataFormat()->getComponents()!=1){
-        LogError("The ImageUpsampler processor does only support single channel images");
+    "interpolationMethod", "Interpolation Method",
+                           {
+                               {"piecewiseconstant", "Piecewise Constant (Nearest Neighbor)", IntepolationMethod::PiecewiseConstant},
+                               {"bilinear", "Bilinear", IntepolationMethod::Bilinear},
+                               {"quadratic", "Quadratic", IntepolationMethod::Quadratic},
+                               {"barycentric", "Barycentric", IntepolationMethod::Barycentric},
+                           }){
+                               addPort(inport_);
+                               addPort(outport_);
+                               addProperty(interpolationMethod_);
+                           }
+    
+    void ImageUpsampler::process() {
+        auto inputImage = inport_.getData();
+        if(inputImage->getDataFormat()->getComponents()!=1){
+            LogError("The ImageUpsampler processor does only support single channel images");
+        }
+        
+        auto inSize = inport_.getData()->getDimensions();
+        auto outDim = outport_.getDimensions();
+        
+        auto outputImage = std::make_shared<Image>(outDim,inputImage->getDataFormat());
+        outputImage->getColorLayer()->setSwizzleMask(inputImage->getColorLayer()->getSwizzleMask());
+        outputImage->getColorLayer()->getEditableRepresentation<LayerRAM>()->dispatch<void,dispatching::filter::Scalars>([&](auto outRep){
+            auto inRep = inputImage->getColorLayer()->getRepresentation<LayerRAM>();
+            detail::upsample(interpolationMethod_.get(), *(const decltype(outRep))(inRep), *outRep);
+        });
+        
+        outport_.setData(outputImage);
     }
-
-    auto inSize = inport_.getData()->getDimensions();
-    auto outDim = outport_.getDimensions();
-
-    auto outputImage = std::make_shared<Image>(outDim,inputImage->getDataFormat());
-    outputImage->getColorLayer()->setSwizzleMask(inputImage->getColorLayer()->getSwizzleMask());
-    outputImage->getColorLayer()->getEditableRepresentation<LayerRAM>()->dispatch<void,dispatching::filter::Scalars>([&](auto outRep){
-        auto inRep = inputImage->getColorLayer()->getRepresentation<LayerRAM>();
-        detail::upsample(interpolationMethod_.get(), *(const decltype(outRep))(inRep), *outRep);
-    });
-
-    outport_.setData(outputImage);
-}
-
-dvec2 ImageUpsampler::convertCoordinate(ivec2 outImageCoords, size2_t inputSize, size2_t outputsize) {
-    dvec2 c(outImageCoords);
-	dvec2 inputDouble(inputSize);
-	dvec2 outputDouble(outputsize);
-
-	dvec2 scales = dvec2(inputDouble.x / outputDouble.x, inputDouble.y / outputDouble.y);
-	c *= scales;
-
-    // TASK 7: Convert the outImageCoords to its coordinates in the input image 
-
-    return c; 
-}
-
-
-
+    
+    dvec2 ImageUpsampler::convertCoordinate(ivec2 outImageCoords, size2_t inputSize, size2_t outputsize) {
+        // TODO implement
+        dvec2 c(outImageCoords);
+        
+        // TASK 7: Convert the outImageCoords to its coordinates in the input image
+        
+        
+        return c;
+    }
+    
+    
+    
 }  // namespace inviwo
+
