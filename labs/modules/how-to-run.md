@@ -1,0 +1,1 @@
+export CMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.4.0/; open /Applications/CMake.app
