@@ -1,1 +1,2 @@
-# TNM067-vetVis
+# TNM067 - Scientific Visualization
+## Labs for the course 🌈
